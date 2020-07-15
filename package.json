@@ -1,7 +1,7 @@
 {
-  "name": "react-native-ipithos-chart-kit",
+  "name": "react-native-customized-chart-kit",
   "version": "1.0.0",
-  "description": "Customized react native chart kit for iPithos",
+  "description": "Customized react native chart kit for special usage",
   "devDependencies": {
     "@types/react": "^16.9.38",
     "@types/react-native": "^0.62.13",

@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { Defs, Line, LinearGradient, Stop, Text } from "react-native-svg";
 
-import { ChartConfig, Dataset, PartialBy } from "./HelperTypes";
+import { ChartConfig, Dataset, PartialBy, MinStock } from "./HelperTypes";
 
 export interface AbstractChartProps {
   fromZero?: boolean;

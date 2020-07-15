@@ -14,7 +14,9 @@ import {
   Polygon,
   Polyline,
   Rect,
-  Svg
+  Svg,
+  Line,
+  Text
 } from "react-native-svg";
 
 import AbstractChart, {
@@ -227,6 +229,9 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
   };
 
   getColor = (dataset: Dataset, opacity: number) => {
+    if (dataset.stringColor) {
+      return dataset.stringColor;
+    }
     return (dataset.color || this.props.chartConfig.color)(opacity);
   };
 
@@ -285,9 +290,9 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
         if (hidePointsAtIndex.includes(i)) {
           return;
         }
-
-        const cx =
-          paddingRight + (i * (width - paddingRight)) / dataset.data.length;
+        let gutter =
+          (width - paddingRight) / (dataset.count || dataset.data.length);
+        const cx = paddingRight + i * gutter + dataset.offset * gutter;
 
         const cy =
           ((baseHeight - this.calcHeight(x, datas, height)) / 4) * 3 +
@@ -336,6 +341,53 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
     });
 
     return output;
+  };
+
+  renderMinStock = ({
+    data,
+    minStock,
+    width,
+    height,
+    paddingTop,
+    paddingRight
+  }: Pick<
+    AbstractChartConfig,
+    "data" | "width" | "height" | "paddingRight" | "paddingTop"
+  > &
+    Pick<ChartData, "minStock">) => {
+    if (!minStock) {
+      return;
+    }
+
+    const datas = this.getDatas(data);
+    const baseHeight = this.calcBaseHeight(datas, height);
+    const y =
+      ((baseHeight - this.calcHeight(minStock.value, datas, height)) / 4) * 3 +
+      paddingTop;
+
+    return (
+      <G>
+        <Line
+          strokeDasharray="5, 5"
+          x1={paddingRight}
+          y1={y}
+          x2={width}
+          y2={y}
+          stroke={minStock.color}
+          strokeWidth="2"
+        />
+        <Text
+          fill={minStock.color}
+          fontSize="10"
+          fontWeight="bold"
+          x={paddingRight - 5}
+          y={y + 2}
+          textAnchor="end"
+        >
+          Min Stock
+        </Text>
+      </G>
+    );
   };
 
   renderScrollableDot = ({
@@ -665,10 +717,13 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
 
     const datas = this.getDatas(data);
 
-    const x = (i: number) =>
-      Math.floor(
-        paddingRight + (i * (width - paddingRight)) / dataset.data.length
+    const x = (i: number) => {
+      let gutter =
+        (width - paddingRight) / (dataset.count || dataset.data.length);
+      return Math.floor(
+        paddingRight + i * gutter + (dataset.offset || 0) * gutter
       );
+    };
 
     const baseHeight = this.calcBaseHeight(datas, height);
 
@@ -739,6 +794,9 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
     useColorFromDataset: AbstractChartConfig["useShadowColorFromDataset"];
   }) =>
     data.map((dataset, index) => {
+      let gutter =
+        (width - paddingRight) / (dataset.count || dataset.data.length);
+
       const d =
         this.getBezierLinePoints(dataset, {
           width,
@@ -748,9 +806,10 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
           data
         }) +
         ` L${paddingRight +
-          ((width - paddingRight) / dataset.data.length) *
-            (dataset.data.length - 1)},${(height / 4) * 3 +
-          paddingTop} L${paddingRight},${(height / 4) * 3 + paddingTop} Z`;
+          gutter * (dataset.data.length + dataset.offset - 1)},${(height / 4) *
+          3 +
+          paddingTop} L${paddingRight +
+          gutter * (dataset.offset || 0)},${(height / 4) * 3 + paddingTop} Z`;
 
       return (
         <Path
@@ -902,6 +961,15 @@ class LineChart extends AbstractChart<LineChartProps, LineChartState> {
                       paddingRight: paddingRight as number
                     })
                   : null)}
+            </G>
+            <G>
+              {this.renderMinStock({
+                ...config,
+                data: data.datasets,
+                minStock: data.minStock,
+                paddingTop: paddingTop as number,
+                paddingRight: paddingRight as number
+              })}
             </G>
             <G>
               {withVerticalLabels &&

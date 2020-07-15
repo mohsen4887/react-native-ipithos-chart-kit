@@ -8,8 +8,17 @@ export interface Dataset {
   /** A function returning the color of the stroke given an input opacity value. */
   color?: (opacity: number) => string;
 
+  /** Color string */
+  stringColor?: string;
+
   /** The width of the stroke. Defaults to 2. */
   strokeWidth?: number;
+
+  /** The length of the chart columns. Default is data length. */
+  count?: number;
+
+  /** The length of the chart offset from begining. Default is zero. */
+  offset?: number;
 
   /** A boolean indicating whether to render dots for this line */
   withDots?: boolean;
@@ -18,10 +27,15 @@ export interface Dataset {
   withScrollableDot?: boolean;
 }
 
+export interface MinStock {
+  value: number;
+  color: string;
+}
 export interface ChartData {
   /** The x-axis labels */
   labels: string[];
   datasets: Dataset[];
+  minStock?: MinStock;
 }
 
 export interface ChartConfig {
